@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Q寶Sweet 手作甜點 · 訂單管理</title>
+<meta name="description" content="Q寶Sweet 手作甜點的可愛訂單管理，粉紅熊陪你記單。登記、訂單、商品一手包，資料只存在自己的手機裡。">
+<meta name="theme-color" content="#F6D6D1">
+<meta property="og:title" content="Q寶Sweet 手作甜點 · 訂單管理">
+<meta property="og:description" content="粉紅熊陪你記單 🐻 登記、訂單、商品一手包。">
+<meta property="og:image" content="分享縮圖_1200x630.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23EFA9AE'/%3E%3Ccircle cx='32' cy='30' r='12' fill='%23EFA9AE'/%3E%3Ccircle cx='68' cy='30' r='12' fill='%23EFA9AE'/%3E%3Ccircle cx='32' cy='30' r='6' fill='%23F6D6D1'/%3E%3Ccircle cx='68' cy='30' r='6' fill='%23F6D6D1'/%3E%3Ccircle cx='40' cy='48' r='4' fill='%237A4A36'/%3E%3Ccircle cx='60' cy='48' r='4' fill='%237A4A36'/%3E%3Cellipse cx='50' cy='62' rx='14' ry='11' fill='%23FFF9F2'/%3E%3Cellipse cx='50' cy='58' rx='5' ry='3.5' fill='%237A4A36'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --pink:#F6D6D1; --pink-deep:#EE8F95; --pink-hot:#E87C8B;
+    --cream:#FDF6EC; --cream-card:#FFFDF9; --coffee:#7A4A36; --coffee-soft:#9A7260;
+    --line:#F0DAD2; --chip:#FCEDEA;
+    --todo:#F3B6B6; --making:#F7CF9B; --ready:#A9D7C4; --done:#CFC6E0;
+    --ok:#6FB89A; --warn:#E8927F;
+    --shadow:0 10px 26px rgba(199,139,129,.18);
+    --shadow-sm:0 4px 12px rgba(199,139,129,.14);
+    --radius:22px;
+    --maxw:440px;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+    color:var(--coffee);
+    background:
+      radial-gradient(circle at 12% 8%, #FCE3DD 0 20px, transparent 21px),
+      radial-gradient(circle at 88% 4%, #FBE6D4 0 16px, transparent 17px),
+      radial-gradient(circle at 90% 30%, #FADCE2 0 12px, transparent 13px),
+      radial-gradient(circle at 6% 40%, #FBE1D8 0 14px, transparent 15px),
+      linear-gradient(180deg,#FBE8E2 0%, var(--cream) 30%, var(--cream) 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* 背景熊掌點點 */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:
+      radial-gradient(circle, rgba(238,143,149,.10) 2px, transparent 3px);
+    background-size:34px 34px;
+  }
+  .app{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;min-height:100vh;
+       padding:0 16px calc(96px + var(--safe-b));}
+
+  /* ===== Header ===== */
+  header{padding:18px 4px 10px;position:sticky;top:0;z-index:20;
+    background:linear-gradient(180deg,#FBE8E2 65%, rgba(251,232,226,0));}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand .logo{width:52px;height:52px;flex:0 0 auto;border-radius:50%;
+    box-shadow:0 6px 14px rgba(232,124,139,.35);background:#EFA9AE;overflow:hidden;}
+  .brand .logo svg,.brand .logo img{width:100%;height:100%;display:block;}
+  .brand h1{margin:0;font-size:19px;font-weight:900;letter-spacing:.5px;line-height:1.1;}
+  .brand .sub{font-size:12px;color:var(--pink-hot);font-weight:700;margin-top:2px;}
+  .brand .edit-name{margin-left:auto;background:#fff;border:1.5px solid var(--line);
+    color:var(--coffee-soft);font-size:11px;font-weight:700;border-radius:999px;
+    padding:6px 10px;cursor:pointer;}
+
+  /* 統計卡 */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px;}
+  .stat{background:var(--cream-card);border:2px solid #fff;border-radius:18px;
+    padding:11px 8px 10px;text-align:center;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+  .stat .num{font-size:22px;font-weight:900;line-height:1;color:var(--pink-hot);}
+  .stat .lbl{font-size:11px;color:var(--coffee-soft);margin-top:5px;font-weight:700;}
+  .stat.todo .num{color:var(--warn);}
+  .stat .paw{position:absolute;right:-6px;bottom:-8px;font-size:30px;opacity:.14;transform:rotate(-15deg);}
+
+  /* ===== Pages ===== */
+  main{margin-top:14px;}
+  .page{display:none;animation:pop .28s ease;}
+  .page.on{display:block;}
+  @keyframes pop{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .card{background:var(--cream-card);border:2px solid #fff;border-radius:var(--radius);
+    padding:16px;box-shadow:var(--shadow);margin-bottom:14px;}
+  .card-h{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:15px;font-weight:900;}
+  .card-h .bi{font-size:18px;}
+  .hint{font-size:12px;color:var(--coffee-soft);line-height:1.6;background:var(--chip);
+    border-radius:14px;padding:9px 12px;margin-bottom:12px;}
+
+  label.fld{display:block;margin-bottom:12px;}
+  label.fld .t{font-size:12.5px;font-weight:800;color:var(--coffee);margin-bottom:6px;display:flex;gap:5px;align-items:center;}
+  label.fld .t .opt{font-size:10.5px;font-weight:700;color:#C9A89D;background:#FBEDE9;border-radius:999px;padding:1px 7px;}
+  input,select,textarea{width:100%;font-family:inherit;font-size:15px;color:var(--coffee);
+    background:#fff;border:2px solid var(--line);border-radius:14px;padding:11px 12px;outline:none;transition:.15s;}
+  input:focus,select,textarea:focus,select:focus{border-color:var(--pink-deep);box-shadow:0 0 0 3px rgba(238,143,149,.15);}
+  textarea{resize:vertical;min-height:52px;}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237A4A36' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  /* 商品列（登記用） */
+  .item-row{display:grid;grid-template-columns:1fr 92px 32px;gap:8px;align-items:center;margin-bottom:9px;}
+  .item-row select{padding:10px 30px 10px 11px;}
+  .qty{display:flex;align-items:center;background:#fff;border:2px solid var(--line);border-radius:14px;overflow:hidden;}
+  .qty button{width:30px;height:40px;border:none;background:var(--chip);color:var(--pink-hot);
+    font-size:19px;font-weight:900;cursor:pointer;}
+  .qty input{border:none;text-align:center;padding:10px 0;width:100%;border-radius:0;font-weight:800;}
+  .qty input:focus{box-shadow:none;}
+  .del-item{width:32px;height:40px;border:none;background:transparent;color:#D9A79C;font-size:20px;cursor:pointer;}
+  .add-item{width:100%;border:2px dashed var(--pink-deep);background:#FFF6F4;color:var(--pink-hot);
+    font-weight:800;font-size:13px;border-radius:14px;padding:11px;cursor:pointer;margin-top:2px;}
+
+  .pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .pick .opt-btn{border:2px solid var(--line);background:#fff;border-radius:14px;padding:11px;
+    font-size:13.5px;font-weight:800;color:var(--coffee-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .pick .opt-btn.sel{border-color:var(--pink-deep);background:#FFF1EF;color:var(--pink-hot);}
+
+  .total-bar{display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(100deg,#FFF0EC,#FDE7E3);border:2px dashed #F2C4BD;border-radius:16px;
+    padding:12px 15px;margin-top:4px;}
+  .total-bar .l{font-size:12.5px;font-weight:800;color:var(--coffee-soft);}
+  .total-bar .r{font-size:21px;font-weight:900;color:var(--pink-hot);}
+  .total-bar .r small{font-size:12px;color:var(--coffee-soft);font-weight:700;margin-right:6px;}
+
+  .btn-main{width:100%;border:none;border-radius:16px;padding:15px;font-size:16px;font-weight:900;
+    color:#fff;background:linear-gradient(100deg,var(--pink-deep),var(--pink-hot));cursor:pointer;
+    box-shadow:0 8px 18px rgba(232,124,139,.38);margin-top:10px;letter-spacing:1px;transition:.12s;}
+  .btn-main:active{transform:translateY(2px) scale(.99);}
+  .btn-ghost{width:100%;border:2px solid var(--line);background:#fff;color:var(--coffee-soft);
+    border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;cursor:pointer;}
+
+  /* ===== 訂單列表 ===== */
+  .toolbar{display:flex;gap:8px;margin-bottom:12px;}
+  .toolbar input{flex:1;padding:10px 12px 10px 36px;
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23C9A89D' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4-4'/%3E%3C/svg%3E") no-repeat 12px center;}
+  .filters{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none;}
+  .filters::-webkit-scrollbar{display:none;}
+  .fchip{flex:0 0 auto;border:2px solid var(--line);background:#fff;color:var(--coffee-soft);
+    font-size:12.5px;font-weight:800;border-radius:999px;padding:7px 14px;cursor:pointer;}
+  .fchip.on{background:var(--coffee);color:#fff;border-color:var(--coffee);}
+
+  .order{background:var(--cream-card);border:2px solid #fff;border-radius:18px;padding:13px 14px;
+    box-shadow:var(--shadow-sm);margin-bottom:11px;position:relative;}
+  .order .top{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px;}
+  .order .cust{font-size:15.5px;font-weight:900;line-height:1.2;}
+  .order .date{font-size:11.5px;color:var(--coffee-soft);font-weight:700;margin-top:3px;}
+  .order .amt{margin-left:auto;text-align:right;}
+  .order .amt .n{font-size:17px;font-weight:900;color:var(--pink-hot);}
+  .order .amt .pay{font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 8px;display:inline-block;margin-top:3px;cursor:pointer;}
+  .pay.unpaid{background:#FDEAE6;color:#DC7A69;}
+  .pay.paid{background:#E4F3EC;color:var(--ok);}
+  .order .lines{font-size:13px;color:var(--coffee);line-height:1.7;background:var(--chip);
+    border-radius:12px;padding:8px 11px;margin-bottom:9px;}
+  .order .note{font-size:12px;color:var(--coffee-soft);margin-bottom:9px;padding-left:4px;}
+  .order .foot{display:flex;align-items:center;gap:8px;}
+  .status{border:none;font-size:12.5px;font-weight:900;border-radius:999px;padding:8px 15px;cursor:pointer;
+    color:#5c4030;box-shadow:inset 0 0 0 2px rgba(0,0,0,.04);transition:.12s;}
+  .status:active{transform:scale(.96);}
+  .status.todo{background:var(--todo);} .status.making{background:var(--making);}
+  .status.ready{background:var(--ready);} .status.done{background:var(--done);}
+  .order .ops{margin-left:auto;display:flex;gap:4px;}
+  .iconbtn{width:34px;height:34px;border:none;background:var(--chip);border-radius:11px;
+    font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .order.done-state{opacity:.72;}
+
+  /* 商品管理 */
+  .prod{display:flex;align-items:center;gap:11px;background:var(--cream-card);border:2px solid #fff;
+    border-radius:16px;padding:11px 13px;box-shadow:var(--shadow-sm);margin-bottom:10px;}
+  .prod .emo{width:42px;height:42px;background:var(--chip);border-radius:13px;display:flex;
+    align-items:center;justify-content:center;font-size:23px;flex:0 0 auto;}
+  .prod .pm{flex:1;min-width:0;}
+  .prod .pn{font-size:15px;font-weight:900;}
+  .prod .pp{font-size:12px;color:var(--coffee-soft);font-weight:700;margin-top:2px;}
+  .prod .cnt{font-size:11px;color:var(--pink-hot);font-weight:800;background:#FFF1EF;border-radius:999px;padding:3px 9px;}
+  .prod .ops{display:flex;gap:4px;}
+
+  /* 設定 / 更多 */
+  .big-emoji{font-size:15px;}
+  .setline{display:flex;align-items:center;gap:10px;padding:13px 2px;border-bottom:1.5px dashed var(--line);}
+  .setline:last-child{border-bottom:none;}
+  .setline .si{font-size:20px;width:26px;text-align:center;}
+  .setline .sc{flex:1;}
+  .setline .sc .st{font-size:14px;font-weight:800;}
+  .setline .sc .sd{font-size:11.5px;color:var(--coffee-soft);margin-top:2px;line-height:1.5;}
+  .setline button{flex:0 0 auto;border:none;background:var(--coffee);color:#fff;font-weight:800;
+    font-size:12.5px;border-radius:12px;padding:9px 13px;cursor:pointer;}
+  .setline button.soft{background:#fff;color:var(--coffee);border:2px solid var(--line);}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--coffee-soft);}
+  .empty .bear{font-size:60px;}
+  .empty .t{font-weight:900;font-size:15px;margin-top:8px;color:var(--coffee);}
+  .empty .d{font-size:12.5px;margin-top:5px;}
+
+  /* ===== 底部導覽 ===== */
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;
+    padding:0 14px calc(12px + var(--safe-b));pointer-events:none;}
+  nav .bar{pointer-events:auto;width:100%;max-width:calc(var(--maxw) - 4px);display:flex;
+    background:var(--cream-card);border:2px solid #fff;border-radius:22px;
+    box-shadow:0 -2px 24px rgba(199,139,129,.22);padding:7px;}
+  nav button{flex:1;border:none;background:transparent;border-radius:16px;padding:7px 2px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--coffee-soft);font-weight:800;font-size:11px;}
+  nav button .ic{font-size:20px;line-height:1;}
+  nav button.on{background:linear-gradient(180deg,#FFEFEB,#FDE2DC);color:var(--pink-hot);}
+  nav button.on .ic{transform:translateY(-1px);}
+
+  /* Toast */
+  #toast{position:fixed;left:50%;bottom:calc(100px + var(--safe-b));transform:translateX(-50%) translateY(20px);
+    background:var(--coffee);color:#fff;font-weight:800;font-size:13px;padding:11px 18px;border-radius:999px;
+    box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.28s;z-index:60;white-space:nowrap;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(122,74,54,.4);z-index:50;display:none;
+    align-items:flex-end;justify-content:center;backdrop-filter:blur(2px);}
+  .modal-bg.on{display:flex;}
+  .modal{background:var(--cream);width:100%;max-width:var(--maxw);border-radius:24px 24px 0 0;
+    padding:20px 18px calc(24px + var(--safe-b));box-shadow:0 -8px 30px rgba(0,0,0,.2);animation:up .3s ease;}
+  @keyframes up{from{transform:translateY(100%);}to{transform:none;}}
+  .modal h3{margin:0 0 14px;font-size:16px;font-weight:900;text-align:center;}
+  .emoji-pick{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+  .emoji-pick button{width:42px;height:42px;border:2px solid var(--line);background:#fff;border-radius:12px;
+    font-size:21px;cursor:pointer;}
+  .emoji-pick button.sel{border-color:var(--pink-deep);background:#FFF1EF;}
+  .edit-tip{background:#FFF4D9;border:2px solid #F3Dca0;border-radius:14px;padding:9px 12px;
+    font-size:12px;font-weight:800;color:#A9793A;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+
+  @media(min-width:460px){ .app{padding-top:4px;} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo" id="logoBox"><img src="logo.svg" alt="Q寶Sweet logo"></div>
+      <div>
+        <h1 id="shopName">Q寶Sweet</h1>
+        <div class="sub">🐻 手作甜點 · 訂單管理</div>
+      </div>
+      <button class="edit-name" onclick="editShopName()">改店名</button>
+    </div>
+    <div class="stats">
+      <div class="stat todo"><div class="num" id="sTodo">0</div><div class="lbl">待出貨</div><div class="paw">🐾</div></div>
+      <div class="stat"><div class="num" id="sMonth">0</div><div class="lbl">本月訂單</div><div class="paw">🧁</div></div>
+      <div class="stat"><div class="num" id="sAmt">$0</div><div class="lbl">本月金額</div><div class="paw">🍮</div></div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== 登記 ===== -->
+    <section class="page on" id="page-new">
+      <div class="card">
+        <div class="card-h"><span class="bi">📝</span>登記新訂單</div>
+        <div class="hint">選好甜點、填上數量，按「記起來」小熊就幫你收進訂單簿裡 🐻💕</div>
+
+        <div class="row2">
+          <label class="fld"><span class="t">🗓️ 取貨日</span><input type="date" id="f-date"></label>
+          <label class="fld"><span class="t">👤 客人</span><input type="text" id="f-cust" placeholder="客人暱稱"></label>
+        </div>
+        <label class="fld"><span class="t">📞 聯絡方式<span class="opt">選填</span></span><input type="text" id="f-contact" placeholder="電話 / LINE / IG"></label>
+
+        <label class="fld"><span class="t">🧁 甜點與數量</span></label>
+        <div id="itemList"></div>
+        <button class="add-item" onclick="addItemRow()">＋ 再加一款甜點</button>
+
+        <label class="fld" style="margin-top:14px"><span class="t">🚚 取貨方式</span></label>
+        <div class="pick" id="pickWay">
+          <button class="opt-btn sel" data-v="自取">🏠 自取／面交</button>
+          <button class="opt-btn" data-v="宅配">📦 冷凍宅配</button>
+        </div>
+
+        <label class="fld" style="margin-top:14px"><span class="t">💰 付款狀態</span></label>
+        <div class="pick" id="pickPay">
+          <button class="opt-btn sel" data-v="unpaid">💳 未付款</button>
+          <button class="opt-btn" data-v="paid">✅ 已收款</button>
+        </div>
+
+        <label class="fld" style="margin-top:14px"><span class="t">🗒️ 備註<span class="opt">選填</span></span><textarea id="f-note" placeholder="口味、不要太甜、幾點取…"></textarea></label>
+
+        <div class="total-bar">
+          <div class="l">🐾 這張單</div>
+          <div class="r"><small id="tCount">共 0 件</small><span id="tAmt">$0</span></div>
+        </div>
+        <button class="btn-main" id="saveBtn" onclick="saveOrder()">🧸 記起來！</button>
+      </div>
+    </section>
+
+    <!-- ===== 訂單 ===== -->
+    <section class="page" id="page-orders">
+      <div class="toolbar"><input type="text" id="search" placeholder="搜尋客人 / 甜點…" oninput="renderOrders()"></div>
+      <div class="filters" id="filters"></div>
+      <div id="orderList"></div>
+    </section>
+
+    <!-- ===== 商品 ===== -->
+    <section class="page" id="page-products">
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-h"><span class="bi">🍰</span>我的甜點櫃</div>
+        <div class="hint">這裡放登記時可以選的甜點。改名或刪除都不會動到已經登記好的舊訂單喔。</div>
+        <button class="btn-main" style="margin-top:0" onclick="openProdModal()">＋ 新增一款甜點</button>
+      </div>
+      <div id="prodList"></div>
+    </section>
+
+    <!-- ===== 更多 ===== -->
+    <section class="page" id="page-more">
+      <div class="card">
+        <div class="card-h"><span class="bi">🎀</span>小店設定</div>
+        <div class="setline"><div class="si">🏠</div><div class="sc"><div class="st">店名</div><div class="sd" id="moreShopName">顯示在最上面，只有你看得到</div></div><button onclick="editShopName()">修改</button></div>
+        <div class="setline"><div class="si">📤</div><div class="sc"><div class="st">匯出 CSV</div><div class="sd">用 Excel / Google 試算表打開，照目前篩選匯出</div></div><button onclick="exportCSV()">匯出</button></div>
+        <div class="setline"><div class="si">📋</div><div class="sc"><div class="st">複製訂單文字</div><div class="sd">一鍵複製整理好的清單，貼到 LINE 很方便</div></div><button class="soft" onclick="copyText()">複製</button></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><span class="bi">🧷</span>資料備份</div>
+        <div class="hint">訂單只存在這支手機的瀏覽器裡。換手機或清除資料前，請先下載備份檔，之後用「還原」就能救回來 🐻</div>
+        <div class="setline"><div class="si">💾</div><div class="sc"><div class="st">下載備份檔</div><div class="sd">把所有訂單＋甜點打包成一個檔</div></div><button onclick="backup()">下載</button></div>
+        <div class="setline"><div class="si">♻️</div><div class="sc"><div class="st">還原備份</div><div class="sd">選一個備份檔蓋回來</div></div><button class="soft" onclick="document.getElementById('restoreFile').click()">選檔</button></div>
+        <input type="file" id="restoreFile" accept=".json" hidden onchange="restore(event)">
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:12px;color:var(--coffee-soft);line-height:1.7">
+          <div style="font-size:30px">🐻🧁🍮</div>
+          Q寶Sweet 手作甜點 · 訂單小幫手<br>做給自己的小店，記單也要可愛
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 底部導覽 -->
+<nav>
+  <div class="bar">
+    <button class="on" data-p="new" onclick="go('new')"><span class="ic">📝</span>登記</button>
+    <button data-p="orders" onclick="go('orders')"><span class="ic">📒</span>訂單</button>
+    <button data-p="products" onclick="go('products')"><span class="ic">🍰</span>甜點</button>
+    <button data-p="more" onclick="go('more')"><span class="ic">🎀</span>更多</button>
+  </div>
+</nav>
+
+<div id="toast"></div>
+
+<!-- 商品 Modal -->
+<div class="modal-bg" id="prodModal">
+  <div class="modal">
+    <h3 id="prodModalTitle">🍰 新增甜點</h3>
+    <div class="emoji-pick" id="emojiPick"></div>
+    <label class="fld"><span class="t">甜點名稱</span><input type="text" id="pm-name" placeholder="例：焦糖布丁"></label>
+    <label class="fld"><span class="t">單價</span><input type="number" id="pm-price" inputmode="numeric" placeholder="60"></label>
+    <div class="row2" style="margin-top:4px">
+      <button class="btn-ghost" onclick="closeProdModal()">取消</button>
+      <button class="btn-main" style="margin-top:0" onclick="saveProd()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== 資料 ========== */
+const KEY='qbao_orders_v1';
+const DEFAULT={
+  shop:'Q寶Sweet',
+  products:[
+    {id:'p1',emo:'🍮',name:'焦糖布丁',price:60,count:0},
+    {id:'p2',emo:'🫐',name:'藍莓生乳酪塔',price:120,count:0},
+    {id:'p3',emo:'🧁',name:'草莓杯子蛋糕',price:80,count:0}
+  ],
+  orders:[]
+};
+const STATUS=[
+  {k:'todo',t:'待製作',cls:'todo'},
+  {k:'making',t:'製作中',cls:'making'},
+  {k:'ready',t:'待取貨',cls:'ready'},
+  {k:'done',t:'已完成',cls:'done'}
+];
+const EMOJIS=['🍮','🧁','🍰','🫐','🍓','🎂','🍪','🧇','🍩','🥐','🍫','🍵','☕','🐻','🎀','🍯'];
+
+let DB=load();
+let editingId=null;        // 正在編輯的訂單
+let editingProd=null;      // 正在編輯的商品
+let pickedEmoji='🍮';
+let curFilter='all';
+
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.products)return d;}catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(DB));}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+/* ========== 導覽 ========== */
+function go(p){
+  document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s.id==='page-'+p));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(p==='orders')renderOrders();
+  if(p==='products')renderProducts();
+}
+
+/* ========== 登記 ========== */
+function productOptions(sel){
+  return DB.products.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${p.emo} ${p.name}（$${p.price}）</option>`).join('');
+}
+function addItemRow(pid,qty){
+  const wrap=document.getElementById('itemList');
+  const div=document.createElement('div');
+  div.className='item-row';
+  div.innerHTML=`
+    <select onchange="calcTotal()">${productOptions(pid||(DB.products[0]&&DB.products[0].id))}</select>
+    <div class="qty">
+      <button type="button" onclick="stepQty(this,-1)">－</button>
+      <input type="number" inputmode="numeric" value="${qty||1}" min="1" oninput="calcTotal()">
+      <button type="button" onclick="stepQty(this,1)">＋</button>
+    </div>
+    <button type="button" class="del-item" onclick="this.parentElement.remove();calcTotal()">🗑️</button>`;
+  wrap.appendChild(div);
+  calcTotal();
+}
+function stepQty(btn,d){
+  const inp=btn.parentElement.querySelector('input');
+  inp.value=Math.max(1,(parseInt(inp.value)||1)+d);calcTotal();
+}
+function collectItems(){
+  const out=[];
+  document.querySelectorAll('#itemList .item-row').forEach(r=>{
+    const pid=r.querySelector('select').value;
+    const qty=Math.max(1,parseInt(r.querySelector('input').value)||1);
+    const p=DB.products.find(x=>x.id===pid);
+    if(p)out.push({pid,name:p.name,emo:p.emo,price:p.price,qty});
+  });
+  return out;
+}
+function calcTotal(){
+  const items=collectItems();
+  const cnt=items.reduce((s,i)=>s+i.qty,0);
+  const amt=items.reduce((s,i)=>s+i.qty*i.price,0);
+  document.getElementById('tCount').textContent='共 '+cnt+' 件';
+  document.getElementById('tAmt').textContent='$'+amt;
+}
+function pickGroup(id,v){
+  document.querySelectorAll('#'+id+' .opt-btn').forEach(b=>b.classList.toggle('sel',b.dataset.v===v));
+}
+function getPick(id){const s=document.querySelector('#'+id+' .opt-btn.sel');return s?s.dataset.v:'';}
+
+document.querySelectorAll('#pickWay .opt-btn,#pickPay .opt-btn').forEach(b=>{
+  b.onclick=()=>pickGroup(b.parentElement.id,b.dataset.v);
+});
+
+function saveOrder(){
+  const cust=document.getElementById('f-cust').value.trim();
+  const items=collectItems();
+  if(!cust){toast('幫客人取個名字吧 🐻');document.getElementById('f-cust').focus();return;}
+  if(!items.length){toast('至少選一款甜點喔 🧁');return;}
+  const o={
+    id:editingId||uid(),
+    date:document.getElementById('f-date').value,
+    cust, contact:document.getElementById('f-contact').value.trim(),
+    items, way:getPick('pickWay'), pay:getPick('pickPay'),
+    note:document.getElementById('f-note').value.trim(),
+    total:items.reduce((s,i)=>s+i.qty*i.price,0),
+    status:editingId?(DB.orders.find(x=>x.id===editingId)||{}).status||'todo':'todo',
+    createdAt:editingId?(DB.orders.find(x=>x.id===editingId)||{}).createdAt||Date.now():Date.now()
+  };
+  if(editingId){
+    const i=DB.orders.findIndex(x=>x.id===editingId);DB.orders[i]=o;editingId=null;
+    document.getElementById('saveBtn').textContent='🧸 記起來！';
+    toast('訂單更新好了 ✏️');
+  }else{DB.orders.unshift(o);toast('收進訂單簿囉 🎀');}
+  recountProducts();save();resetForm();renderStats();go('orders');
+}
+function resetForm(){
+  document.getElementById('f-cust').value='';
+  document.getElementById('f-contact').value='';
+  document.getElementById('f-note').value='';
+  document.getElementById('f-date').valueAsDate=new Date();
+  document.getElementById('itemList').innerHTML='';addItemRow();
+  pickGroup('pickWay','自取');pickGroup('pickPay','unpaid');
+  editingId=null;document.getElementById('saveBtn').textContent='🧸 記起來！';
+}
+function editOrder(id){
+  const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  editingId=id;
+  document.getElementById('f-date').value=o.date||'';
+  document.getElementById('f-cust').value=o.cust||'';
+  document.getElementById('f-contact').value=o.contact||'';
+  document.getElementById('f-note').value=o.note||'';
+  pickGroup('pickWay',o.way||'自取');pickGroup('pickPay',o.pay||'unpaid');
+  document.getElementById('itemList').innerHTML='';
+  o.items.forEach(i=>addItemRow(i.pid,i.qty));
+  document.getElementById('saveBtn').textContent='✏️ 更新訂單';
+  go('new');toast('編輯中…改好按更新 🐻');
+}
+
+/* ========== 訂單列表 ========== */
+function renderStats(){
+  const now=new Date(),ym=now.getFullYear()+'-'+(now.getMonth()+1);
+  let todo=0,mCnt=0,mAmt=0;
+  DB.orders.forEach(o=>{
+    if(o.status!=='done')todo++;
+    const d=new Date(o.createdAt);
+    if(d.getFullYear()+'-'+(d.getMonth()+1)===ym){mCnt++;mAmt+=o.total;}
+  });
+  document.getElementById('sTodo').textContent=todo;
+  document.getElementById('sMonth').textContent=mCnt;
+  document.getElementById('sAmt').textContent='$'+mAmt;
+}
+function renderFilters(){
+  const box=document.getElementById('filters');
+  const defs=[{k:'all',t:'全部'},...STATUS.map(s=>({k:s.k,t:s.t})),{k:'unpaid',t:'未收款'}];
+  box.innerHTML=defs.map(d=>{
+    const n=d.k==='all'?DB.orders.length:d.k==='unpaid'?DB.orders.filter(o=>o.pay==='unpaid').length:DB.orders.filter(o=>o.status===d.k).length;
+    return `<button class="fchip ${curFilter===d.k?'on':''}" onclick="setFilter('${d.k}')">${d.t} ${n}</button>`;
+  }).join('');
+}
+function setFilter(k){curFilter=k;renderFilters();renderOrders();}
+function renderOrders(){
+  renderFilters();
+  const q=(document.getElementById('search').value||'').trim().toLowerCase();
+  let list=DB.orders.slice();
+  if(curFilter==='unpaid')list=list.filter(o=>o.pay==='unpaid');
+  else if(curFilter!=='all')list=list.filter(o=>o.status===curFilter);
+  if(q)list=list.filter(o=>(o.cust||'').toLowerCase().includes(q)||o.items.some(i=>i.name.toLowerCase().includes(q)));
+  const box=document.getElementById('orderList');
+  if(!list.length){
+    box.innerHTML=`<div class="empty"><div class="bear">🐻💤</div><div class="t">還沒有訂單</div><div class="d">去「登記」記下第一筆吧！</div></div>`;return;
+  }
+  box.innerHTML=list.map(o=>{
+    const st=STATUS.find(s=>s.k===o.status)||STATUS[0];
+    const lines=o.items.map(i=>`${i.emo} ${i.name} ×${i.qty}`).join('　');
+    const payCls=o.pay==='paid'?'paid':'unpaid';const payTx=o.pay==='paid'?'已收款':'未收款';
+    const wayTx=o.way==='宅配'?'📦 宅配':'🏠 自取';
+    return `<div class="order ${o.status==='done'?'done-state':''}">
+      <div class="top">
+        <div><div class="cust">${esc(o.cust)}</div>
+        <div class="date">${o.date?'🗓️ '+o.date+' · ':''}${wayTx}${o.contact?' · '+esc(o.contact):''}</div></div>
+        <div class="amt"><div class="n">$${o.total}</div>
+        <span class="pay ${payCls}" onclick="togglePay('${o.id}')">${payTx}</span></div>
+      </div>
+      <div class="lines">${lines}</div>
+      ${o.note?`<div class="note">🗒️ ${esc(o.note)}</div>`:''}
+      <div class="foot">
+        <button class="status ${st.cls}" onclick="nextStatus('${o.id}')">${st.t} ›</button>
+        <div class="ops">
+          <button class="iconbtn" onclick="editOrder('${o.id}')">✏️</button>
+          <button class="iconbtn" onclick="delOrder('${o.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function nextStatus(id){
+  const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  const i=STATUS.findIndex(s=>s.k===o.status);
+  o.status=STATUS[(i+1)%STATUS.length].k;
+  save();renderOrders();renderStats();
+}
+function togglePay(id){
+  const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  o.pay=o.pay==='paid'?'unpaid':'paid';save();renderOrders();
+  toast(o.pay==='paid'?'收款囉 💰':'改成未收款');
+}
+function delOrder(id){
+  if(!confirm('刪掉這筆訂單嗎？小熊救不回來喔 🐻'))return;
+  DB.orders=DB.orders.filter(x=>x.id!==id);recountProducts();save();renderOrders();renderStats();toast('刪掉了');
+}
+
+/* ========== 商品 ========== */
+function recountProducts(){
+  DB.products.forEach(p=>p.count=0);
+  DB.orders.forEach(o=>o.items.forEach(i=>{const p=DB.products.find(x=>x.id===i.pid);if(p)p.count+=i.qty;}));
+}
+function renderProducts(){
+  const box=document.getElementById('prodList');
+  box.innerHTML=DB.products.map(p=>`
+    <div class="prod">
+      <div class="emo">${p.emo}</div>
+      <div class="pm"><div class="pn">${esc(p.name)}</div><div class="pp">$${p.price}</div></div>
+      <span class="cnt">累計 ${p.count||0} 件</span>
+      <div class="ops">
+        <button class="iconbtn" onclick="editProd('${p.id}')">✏️</button>
+        <button class="iconbtn" onclick="delProd('${p.id}')">🗑️</button>
+      </div>
+    </div>`).join('')||`<div class="empty"><div class="bear">🍰</div><div class="t">甜點櫃空空的</div><div class="d">按上面新增一款吧</div></div>`;
+}
+function openProdModal(){
+  editingProd=null;pickedEmoji='🍮';
+  document.getElementById('prodModalTitle').textContent='🍰 新增甜點';
+  document.getElementById('pm-name').value='';document.getElementById('pm-price').value='';
+  buildEmojiPick();document.getElementById('prodModal').classList.add('on');
+}
+function editProd(id){
+  const p=DB.products.find(x=>x.id===id);if(!p)return;
+  editingProd=id;pickedEmoji=p.emo;
+  document.getElementById('prodModalTitle').textContent='✏️ 編輯甜點';
+  document.getElementById('pm-name').value=p.name;document.getElementById('pm-price').value=p.price;
+  buildEmojiPick();document.getElementById('prodModal').classList.add('on');
+}
+function buildEmojiPick(){
+  document.getElementById('emojiPick').innerHTML=EMOJIS.map(e=>
+    `<button class="${e===pickedEmoji?'sel':''}" onclick="pickEmoji('${e}',this)">${e}</button>`).join('');
+}
+function pickEmoji(e,btn){pickedEmoji=e;document.querySelectorAll('#emojiPick button').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+function closeProdModal(){document.getElementById('prodModal').classList.remove('on');}
+function saveProd(){
+  const name=document.getElementById('pm-name').value.trim();
+  const price=parseInt(document.getElementById('pm-price').value)||0;
+  if(!name){toast('幫甜點取個名字 🍰');return;}
+  if(editingProd){const p=DB.products.find(x=>x.id===editingProd);p.name=name;p.price=price;p.emo=pickedEmoji;}
+  else DB.products.push({id:uid(),emo:pickedEmoji,name,price,count:0});
+  save();closeProdModal();renderProducts();toast('甜點收好了 🧁');
+}
+function delProd(id){
+  if(!confirm('刪掉這款甜點嗎？（舊訂單不受影響）'))return;
+  DB.products=DB.products.filter(x=>x.id!==id);save();renderProducts();toast('刪掉了');
+}
+document.getElementById('prodModal').addEventListener('click',e=>{if(e.target.id==='prodModal')closeProdModal();});
+
+/* ========== 店名 ========== */
+function editShopName(){
+  const n=prompt('店名要叫什麼呢？🐻',DB.shop);
+  if(n&&n.trim()){DB.shop=n.trim();save();applyShop();toast('改好囉 🎀');}
+}
+function applyShop(){
+  document.getElementById('shopName').textContent=DB.shop;
+  document.getElementById('moreShopName').textContent='目前：'+DB.shop;
+}
+
+/* ========== 匯出 / 備份 ========== */
+function filtered(){
+  let list=DB.orders.slice();
+  if(curFilter==='unpaid')list=list.filter(o=>o.pay==='unpaid');
+  else if(curFilter!=='all')list=list.filter(o=>o.status===curFilter);
+  return list;
+}
+function exportCSV(){
+  const rows=[['日期','客人','聯絡','甜點','金額','取貨','付款','狀態','備註']];
+  filtered().forEach(o=>{
+    const st=(STATUS.find(s=>s.k===o.status)||{}).t||'';
+    rows.push([o.date||'',o.cust,o.contact||'',o.items.map(i=>i.name+'x'+i.qty).join(' / '),
+      o.total,o.way||'',o.pay==='paid'?'已收款':'未收款',st,(o.note||'').replace(/\n/g,' ')]);
+  });
+  const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  dl(new Blob([csv],{type:'text/csv'}),'Q寶Sweet訂單_'+today()+'.csv');
+  toast('CSV 匯出好了 📤');
+}
+function copyText(){
+  const txt=filtered().map(o=>{
+    const st=(STATUS.find(s=>s.k===o.status)||{}).t||'';
+    return `🐻 ${o.cust}${o.date?'（'+o.date+'）':''}\n`+
+      o.items.map(i=>`  ${i.emo}${i.name} ×${i.qty}`).join('\n')+
+      `\n  💰$${o.total}・${o.pay==='paid'?'已收款':'未收款'}・${st}`+(o.note?`\n  🗒️${o.note}`:'');
+  }).join('\n\n')||'目前沒有訂單';
+  navigator.clipboard.writeText(txt).then(()=>toast('複製好了，去貼吧 📋')).catch(()=>{
+    prompt('手動複製：',txt);
+  });
+}
+function backup(){
+  dl(new Blob([JSON.stringify(DB)],{type:'application/json'}),'Q寶Sweet備份_'+today()+'.json');
+  toast('備份下載好了 💾');
+}
+function restore(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.products)throw 0;
+    if(!confirm('用這個備份蓋掉現在的資料嗎？'))return;
+    DB=d;save();applyShop();renderStats();renderOrders();renderProducts();toast('還原成功 ♻️');
+  }catch(e){toast('檔案看起來怪怪的 😿');}};
+  r.readAsText(f);ev.target.value='';
+}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function today(){const d=new Date();return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');}
+
+/* ========== 工具 ========== */
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+let toastT;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1900);}
+
+/* ========== 啟動 ========== */
+function boot(){
+  applyShop();
+  document.getElementById('f-date').valueAsDate=new Date();
+  addItemRow();
+  recountProducts();renderStats();
+}
+boot();
+</script>
+</body>
+</html>
